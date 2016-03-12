@@ -9,30 +9,31 @@ int main(){
   init_commands();
 
   int choice;
-  int main_choices[] = { CREATE, SEARCH, INDEX, EXIT };
+  int main_choices[4] = { CREATE, SEARCH, INDEX, EXIT };
 
-  int c[2] = {TRANSLATION_EN, TRANSLATION_LT};
-  char inf[100];
-  get_information(c, 2, inf);
-  puts(inf);
-
-  // while(1){
-  while(0){
+  while(1){
     choice = select_command(main_choices, 4);
 
     switch (choice){
-      case CREATE:
-        puts("Kurti");
+      case CREATE: {
+        int input_options[2] = { TRANSLATION_EN, TRANSLATION_LT };
+        char data[100];
+        get_information(input_options, 2, data);
+        printf("Į serverį bus išsiųsta: create%s \n", data);
         break;
-      case SEARCH:
+      }
+      case SEARCH:{
         puts("Ieškoti");
         break;
-      case INDEX:
+      }
+      case INDEX:{
         puts("Rodyti sąrašą");
         break;
-      case EXIT:
+      }
+      case EXIT:{
         puts("Išeiti");
         return 0;
+      }
     }
     getchar();
     getchar();
