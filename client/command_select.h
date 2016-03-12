@@ -5,8 +5,10 @@
 #define SEARCH  2
 #define INDEX   3
 #define EXIT    4
+#define SEARCH_FOR_EN_TEXT  5
+#define SEARCH_FOR_LT_TEXT  6
 
-#define COMMANDS_COUNT    4
+#define COMMANDS_COUNT    6
 
 #define clear() printf("\033[H\033[J")
 

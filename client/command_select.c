@@ -13,6 +13,11 @@ void init_commands(){
   client_commands[3].id = EXIT;
   strcpy(client_commands[3].translation, "Išeiti.");
 
+  client_commands[4].id = SEARCH_FOR_EN_TEXT;
+  strcpy(client_commands[4].translation, "Ieškoti žodžio angliškai.");
+
+  client_commands[5].id = SEARCH_FOR_LT_TEXT;
+  strcpy(client_commands[5].translation, "Ieškoti žodžio lietuviškai.");
 }
 
 int select_command(int *arr, int length){
