@@ -1,5 +1,5 @@
 build:
-	gcc client.c command_select.c information_get.c -o client
+	gcc client.c command_select.c information_get.c connector.c -o client
 run:
 	./client
 clean:

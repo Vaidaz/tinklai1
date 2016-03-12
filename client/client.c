@@ -4,8 +4,17 @@
 
 #include "command_select.h"
 #include "information_get.h"
+#include "connector.h"
 
-#define PER_PAGE 10
+#define PORT "3490"
+#define HOST "127.0.0.1"
+
+void send_command(int sockfd, char *command, char *data){
+  char message[100];
+  strcpy(message, command);
+  strcat(message, data);
+  send(sockfd, message, strlen(message), 0);
+}
 
 int main(){
   init_commands();
@@ -13,15 +22,21 @@ int main(){
   int main_choice;
   int main_choices[4] = { CREATE, SEARCH, INDEX, EXIT };
 
-  while(1){
+  // int sockfd = connect_to_server();
+  int sockfd;
+  establish_connection(HOST, PORT, &sockfd);
+
+  int run = 1;
+
+  while(run){
     main_choice = select_command(main_choices, 4);
 
     switch (main_choice){
       case CREATE: {
         int input_options[2] = { TRANSLATION_EN, TRANSLATION_LT };
-        char data[100];
+        char data[100], message[100];
         get_information(input_options, 2, data);
-        printf("Į serverį bus išsiųsta: create%s \n", data);
+        send_command(sockfd, "create", data);
         break;
       }
       case SEARCH:{
@@ -37,21 +52,22 @@ int main(){
 
         char data[100];
         get_information(input_options, 1, data);
-        printf("Į serverį bus išsiųsta: search%s \n", data);
-
+        send_command(sockfd, "search", data);
         break;
       }
       case INDEX:{
-        printf("Į serverį bus išsiųsta: index{}\n");
+        send_command(sockfd, "index", "{}");
         break;
       }
-      case EXIT:{
-        return 0;
-      }
+      case EXIT:
+        run = 0;
+        break;
     }
     getchar();
     getchar();
   };
 
+  close(sockfd);
   return 0;
 }
+
