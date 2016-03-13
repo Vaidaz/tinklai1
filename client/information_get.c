@@ -1,35 +1,22 @@
 #include "information_get.h"
 
 
-void get_information(int *options, int size, char *result){
+HASH get_information(int *options, int size){
   int i;
-  int answers_counter = 0;
-  char answers[2][ANSWERS_SIZE];
-  char user_input[ANSWERS_SIZE];
+  HASH hash = new_hash();
 
   for(i = 0; i < size; i++){
     switch(options[i]) {
       case TRANSLATION_EN:
         printf("Iveskite en vertima: ");
-        scanf("%s", user_input);
-        sprintf(answers[answers_counter], "%s:%s", "translation_en", user_input);
-        answers_counter++;
+        scanf("%s", hash.en);
         break;
       case TRANSLATION_LT:
         printf("Iveskite lt vertima: ");
-        scanf("%s", user_input);
-        sprintf(answers[answers_counter], "%s:%s", "translation_lt", user_input);
-        answers_counter++;
+        scanf("%s", hash.lt);
         break;
     }
   }
 
-  strcpy(result, "{");
-  for(i = 0; i < answers_counter; i++){
-    if(i != 0){
-      strcat(result, ",");
-    }
-    strcat(result, answers[i]);
-  }
-  strcat(result, "}");
+  return hash;
 }

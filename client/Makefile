@@ -1,6 +1,6 @@
 build:
-	gcc client.c command_select.c information_get.c connector.c -o client
+	gcc client.c command_select.c information_get.c connector.c ../common/hash.c -o client
 run:
-	./client
+	valgrind --tool=memcheck ./client
 clean:
 	rm client

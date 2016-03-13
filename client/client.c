@@ -35,8 +35,10 @@ int main(){
       case CREATE: {
         int input_options[2] = { TRANSLATION_EN, TRANSLATION_LT };
         char data[100], message[100];
-        get_information(input_options, 2, data);
-        send_command(sockfd, "create", data);
+        HASH hash = get_information(input_options, 2);
+        strcpy(hash.command, "create");
+        to_string(hash, data, sizeof(data));
+        send(sockfd, data, strlen(data), 0);
         break;
       }
       case SEARCH:{
@@ -51,12 +53,18 @@ int main(){
         }
 
         char data[100];
-        get_information(input_options, 1, data);
-        send_command(sockfd, "search", data);
+        HASH hash = get_information(input_options, 1);
+        strcpy(hash.command, "search");
+        to_string(hash, data, sizeof(data));
+        send(sockfd, data, strlen(data), 0);
         break;
       }
       case INDEX:{
-        send_command(sockfd, "index", "{}");
+        char data[100];
+        HASH hash = new_hash();
+        strcpy(hash.command, "index");
+        to_string(hash, data, sizeof(data));
+        send(sockfd, data, strlen(data), 0);
         break;
       }
       case EXIT:
