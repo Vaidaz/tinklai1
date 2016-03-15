@@ -5,16 +5,13 @@
 #include "command_select.h"
 #include "information_get.h"
 #include "connector.h"
+#include "../common/response_codes.h"
 
 #define PORT "3490"
 #define HOST "127.0.0.1"
 
-void send_command(int sockfd, char *command, char *data){
-  char message[100];
-  strcpy(message, command);
-  strcat(message, data);
-  send(sockfd, message, strlen(message), 0);
-}
+void send_command(int sockfd, char *command, char *data);
+HASH receive_hash(int sockfd);
 
 int main(){
   init_commands();
@@ -39,6 +36,12 @@ int main(){
         strcpy(hash.command, "create");
         to_string(hash, data, sizeof(data));
         send(sockfd, data, strlen(data), 0);
+        hash = receive_hash(sockfd);
+        if(hash.status == SUCCESS){
+          puts("Sėkmingai išsaugota.");
+        } else {
+          puts("Įvyko klaida.");
+        }
         break;
       }
       case SEARCH:{
@@ -57,6 +60,7 @@ int main(){
         strcpy(hash.command, "search");
         to_string(hash, data, sizeof(data));
         send(sockfd, data, strlen(data), 0);
+
         break;
       }
       case INDEX:{
@@ -79,3 +83,23 @@ int main(){
   return 0;
 }
 
+void send_command(int sockfd, char *command, char *data){
+  char message[100];
+  strcpy(message, command);
+  strcat(message, data);
+  send(sockfd, message, strlen(message), 0);
+}
+
+HASH receive_hash(int sockfd){
+  char buf[100];
+  int nbytes;
+  HASH hash;
+
+  if ((nbytes = recv(sockfd, buf, sizeof buf, 0)) <= 0) {
+    perror("recv");
+  } else {
+    hash = to_hash(buf);
+  }
+
+  return hash;
+}

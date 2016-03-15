@@ -8,6 +8,10 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 
+#include "db.h"
+#include "../common/hash.h"
+#include "../common/response_codes.h"
+
 #define PORT "3490"
 #define BACKLOG 3
 
@@ -15,6 +19,7 @@ void *get_in_addr(struct sockaddr *sa);
 int initialize_server(char *port);
 void handle_incomming_connection(int listener, int *fdmax, fd_set *main_set);
 void handle_incomming_data(int sockfd, fd_set *main_set);
+void respond(int sockfd, int status_code);
 
 int main(void){
   int listener = initialize_server("3490");
@@ -39,7 +44,6 @@ int main(void){
       if (FD_ISSET(i, &read_set)) { // nauji duomenys
         if (i == listener) {
           handle_incomming_connection(listener, &fdmax, &main_set);
-          printf("%d\n", fdmax);
         } else {
           handle_incomming_data(i, &main_set);
         }
@@ -133,6 +137,8 @@ void *get_in_addr(struct sockaddr *sa){
 void handle_incomming_data(int sockfd, fd_set *main_set){
   char buf[100] = {0};
   int nbytes;
+  HASH hash;
+  FILE *db;
 
   if ((nbytes = recv(sockfd, buf, sizeof buf, 0)) <= 0) {
     if (nbytes == 0) {
@@ -145,7 +151,33 @@ void handle_incomming_data(int sockfd, fd_set *main_set){
     close(sockfd);
     FD_CLR(sockfd, main_set); // paralinam į pagrindinio sąrašo
   } else {
-    printf("%s\n", buf);
+    hash = to_hash(buf);
+    db_connect(&db);
+
+    if (strcmp(hash.command, "create") == 0){
+      db_add(db, hash);
+      respond(sockfd, SUCCESS);
+    } else if (strcmp(hash.command, "search") == 0){
+      // TODO paieska
+      puts("ieskom");
+    } else if (strcmp(hash.command, "index") == 0){
+      // TODO sarasas
+      puts("sarasas");
+    } else {
+      printf("Neatpazinta komanda: %s\n", hash.command);
+    }
+
+    db_close(db);
   }
 
+}
+
+void respond(int sockfd, int status_code){
+  char data[100];
+  HASH hash = new_hash();
+  hash.status = status_code;
+  printf("hash status: %d\n", hash.status);
+  to_string(hash, data, sizeof(data));
+  printf("hash string: %s\n", data);
+  send(sockfd, data, strlen(data), 0);
 }

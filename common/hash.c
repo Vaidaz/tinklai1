@@ -1,7 +1,9 @@
 #include "hash.h"
+#include "../common/response_codes.h"
 
 HASH new_hash(){
   HASH hash;
+  hash.status = NO_STATUS;
   memset(hash.command, 0, sizeof(hash.command));
   memset(hash.lt, 0, sizeof(hash.lt));
   memset(hash.en, 0, sizeof(hash.en));
@@ -18,6 +20,9 @@ void to_string(HASH hash, char *string, char length){
   }
   if(strlen(hash.en) != 0){
     sprintf(buffer + strlen(buffer), "en:%s;", hash.en);
+  }
+  if(hash.status != NO_STATUS){
+    sprintf(buffer + strlen(buffer), "status:%d;", hash.status);
   }
   strncpy(string, buffer, length);
 }
@@ -54,6 +59,8 @@ HASH to_hash(char *message){
       strncpy(hash.en, value, sizeof(hash.en));
     } else if( strcmp(key, "command") == 0 ){
       strncpy(hash.command, value, sizeof(hash.command));
+    } else if( strcmp(key, "status") == 0 ){
+      hash.status = atoi(value);
     }
   }
 

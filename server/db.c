@@ -4,9 +4,8 @@ void db_connect(FILE **file){
   *file = fopen(DB_FILE, "a+");
 }
 
-int db_add(FILE *file, Word word){
-  int i;
-  fprintf(file, "lt:%s,en:%s\n", word.lt, word.en);
+int db_add(FILE *file, HASH hash){
+  fprintf(file, "lt:%s,en:%s\n", hash.lt, hash.en);
 }
 
 void db_close(FILE *file){
