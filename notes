@@ -1,16 +1,13 @@
 Dar reikia padaryti:
   db.c
-    * žodžio paieška (pagal en/lt)
     * žodžio trynimas
     * neleisti išsaugoti žodžio jei toks yra
   server.c:
     * status kai kuriamas egzistuojantis žodis
-    * paieška, tikriausiai reiks galimybės siųsti array
     * index
     * trynimas
     * atnaujinimas
   client.c:
-    * response gavimas
     * delete
     * update
     * index
