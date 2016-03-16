@@ -1,5 +1,5 @@
 #include "hash.h"
-#include "../common/response_codes.h"
+#include "../common/statuses.h"
 
 HASH new_hash(){
   HASH hash;
@@ -13,36 +13,33 @@ HASH new_hash(){
 void to_string(HASH hash, char *string, char length){
   char buffer[100] = {0};
   if(strlen(hash.command) != 0){
-    sprintf(buffer, "command:%s;", hash.command);
+    sprintf(buffer, "command:%s,", hash.command);
   }
   if(strlen(hash.lt) != 0){
-    sprintf(buffer + strlen(buffer), "lt:%s;", hash.lt);
+    sprintf(buffer + strlen(buffer), "lt:%s,", hash.lt);
   }
   if(strlen(hash.en) != 0){
-    sprintf(buffer + strlen(buffer), "en:%s;", hash.en);
+    sprintf(buffer + strlen(buffer), "en:%s,", hash.en);
   }
   if(hash.status != NO_STATUS){
-    sprintf(buffer + strlen(buffer), "status:%d;", hash.status);
+    sprintf(buffer + strlen(buffer), "status:%d,", hash.status);
   }
   strncpy(string, buffer, length);
 }
 
 HASH to_hash(char *message){
-  HASH hash;
-
-  memset(hash.command, 0, sizeof(hash.command));
-  memset(hash.lt, 0, sizeof(hash.lt));
-  memset(hash.en, 0, sizeof(hash.en));
+  HASH hash = new_hash();
 
   char message_buffer[50] = {0};
   strcpy(message_buffer, message);
+  strtok(message_buffer, "\n");
 
   // Suskaldau eilutę į k.v. poras pagal ';'
   int max_pairs = 3, pairs_count = 0;
   char *pairs[max_pairs];
-  pairs[pairs_count] = strtok(message_buffer, ";");
+  pairs[pairs_count] = strtok(message_buffer, ",");
   while(pairs[pairs_count] != NULL && pairs_count < max_pairs){
-    pairs[++pairs_count] = strtok(NULL, ";");
+    pairs[++pairs_count] = strtok(NULL, ",");
   }
 
   // Poras suskaidau pagal ':' ir gaunu k.v.

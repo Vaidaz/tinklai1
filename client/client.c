@@ -5,7 +5,7 @@
 #include "command_select.h"
 #include "information_get.h"
 #include "connector.h"
-#include "../common/response_codes.h"
+#include "../common/statuses.h"
 
 #define PORT "3490"
 #define HOST "127.0.0.1"
@@ -19,7 +19,6 @@ int main(){
   int main_choice;
   int main_choices[4] = { CREATE, SEARCH, INDEX, EXIT };
 
-  // int sockfd = connect_to_server();
   int sockfd;
   establish_connection(HOST, PORT, &sockfd);
 
@@ -60,7 +59,15 @@ int main(){
         strcpy(hash.command, "search");
         to_string(hash, data, sizeof(data));
         send(sockfd, data, strlen(data), 0);
-
+        hash = receive_hash(sockfd);
+        if(hash.status == TRANSLATION_FOUND){
+          puts("");
+          puts("Vertimas rastas.");
+          printf("LT vertimas: %s\n", hash.lt);
+          printf("EN vertimas: %s\n", hash.en);
+        } else if(hash.status == TRANSLATION_NOT_FOUND) {
+          printf("\nVertimas nerastas.\n");
+        }
         break;
       }
       case INDEX:{
@@ -75,8 +82,10 @@ int main(){
         run = 0;
         break;
     }
-    getchar();
-    getchar();
+    if(run){
+      getchar();
+      getchar();
+    }
   };
 
   close(sockfd);

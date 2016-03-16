@@ -10,7 +10,7 @@
 
 #include "db.h"
 #include "../common/hash.h"
-#include "../common/response_codes.h"
+#include "../common/statuses.h"
 
 #define PORT "3490"
 #define BACKLOG 3
@@ -19,7 +19,7 @@ void *get_in_addr(struct sockaddr *sa);
 int initialize_server(char *port);
 void handle_incomming_connection(int listener, int *fdmax, fd_set *main_set);
 void handle_incomming_data(int sockfd, fd_set *main_set);
-void respond(int sockfd, int status_code);
+void respond_with_hash(int sockfd, HASH hash);
 
 int main(void){
   int listener = initialize_server("3490");
@@ -139,6 +139,7 @@ void handle_incomming_data(int sockfd, fd_set *main_set){
   int nbytes;
   HASH hash;
   FILE *db;
+  int status_code;
 
   if ((nbytes = recv(sockfd, buf, sizeof buf, 0)) <= 0) {
     if (nbytes == 0) {
@@ -156,10 +157,14 @@ void handle_incomming_data(int sockfd, fd_set *main_set){
 
     if (strcmp(hash.command, "create") == 0){
       db_add(db, hash);
-      respond(sockfd, SUCCESS);
+      HASH hash = new_hash();
+      hash.status = TRANSLATION_CREATED;
+      respond_with_hash(sockfd, hash);
     } else if (strcmp(hash.command, "search") == 0){
       // TODO paieska
-      puts("ieskom");
+      HASH translation_hash;
+      db_find(db, hash, &translation_hash);
+      respond_with_hash(sockfd, translation_hash);
     } else if (strcmp(hash.command, "index") == 0){
       // TODO sarasas
       puts("sarasas");
@@ -172,12 +177,8 @@ void handle_incomming_data(int sockfd, fd_set *main_set){
 
 }
 
-void respond(int sockfd, int status_code){
+void respond_with_hash(int sockfd, HASH hash){
   char data[100];
-  HASH hash = new_hash();
-  hash.status = status_code;
-  printf("hash status: %d\n", hash.status);
   to_string(hash, data, sizeof(data));
-  printf("hash string: %s\n", data);
   send(sockfd, data, strlen(data), 0);
 }
