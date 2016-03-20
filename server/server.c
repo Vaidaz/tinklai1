@@ -9,7 +9,7 @@
 #include <netdb.h>
 
 #include "db.h"
-#include "../common/hash.h"
+#include "../common/word.h"
 #include "../common/statuses.h"
 
 #define PORT "3490"
@@ -19,7 +19,10 @@ void *get_in_addr(struct sockaddr *sa);
 int initialize_server(char *port);
 void handle_incomming_connection(int listener, int *fdmax, fd_set *main_set);
 void handle_incomming_data(int sockfd, fd_set *main_set);
-void respond_with_hash(int sockfd, HASH hash);
+
+void parse_command(char *buf, char **command, Word *word);
+void return_status(int sockfd, int status);
+void return_status_and_word(int sockfd, int status, Word word);
 
 int main(void){
   int listener = initialize_server("3490");
@@ -137,9 +140,6 @@ void *get_in_addr(struct sockaddr *sa){
 void handle_incomming_data(int sockfd, fd_set *main_set){
   char buf[100] = {0};
   int nbytes;
-  HASH hash;
-  FILE *db;
-  int status_code;
 
   if ((nbytes = recv(sockfd, buf, sizeof buf, 0)) <= 0) {
     if (nbytes == 0) {
@@ -152,33 +152,62 @@ void handle_incomming_data(int sockfd, fd_set *main_set){
     close(sockfd);
     FD_CLR(sockfd, main_set); // paralinam į pagrindinio sąrašo
   } else {
-    hash = to_hash(buf);
+    Word word = empty_word();
+    char *command;
+    FILE *db;
+
+    parse_command(buf, &command, &word);
     db_connect(&db);
 
-    if (strcmp(hash.command, "create") == 0){
-      db_add(db, hash);
-      HASH hash = new_hash();
-      hash.status = TRANSLATION_CREATED;
-      respond_with_hash(sockfd, hash);
-    } else if (strcmp(hash.command, "search") == 0){
-      // TODO paieska
-      HASH translation_hash;
-      db_find(db, hash, &translation_hash);
-      respond_with_hash(sockfd, translation_hash);
-    } else if (strcmp(hash.command, "index") == 0){
-      // TODO sarasas
-      puts("sarasas");
+    if (strcmp(command, "create") == 0){
+      int status = db_add(db, word);
+      switch(status){
+        case DB_TRANSLATION_ADDED:
+          return_status(sockfd, TRANSLATION_CREATED);
+          break;
+        case DB_TRANSLATION_FOUND:
+          return_status(sockfd, TRANSLATION_EXIST);
+          break;
+      }
+    } else if (strcmp(command, "search") == 0){
+      Word full_word = empty_word();
+      int status = db_find(db, word, &full_word);
+      switch(status){
+        case DB_TRANSLATION_FOUND:
+          return_status_and_word(sockfd, TRANSLATION_FOUND, full_word);
+          break;
+        case DB_TRANSLATION_NOT_FOUND:
+          return_status(sockfd, TRANSLATION_NOT_FOUND);
+          break;
+      }
     } else {
-      printf("Neatpazinta komanda: %s\n", hash.command);
+      printf("Neatpazinta komanda: %s\n", command);
     }
 
     db_close(db);
+
   }
 
 }
 
-void respond_with_hash(int sockfd, HASH hash){
-  char data[100];
-  to_string(hash, data, sizeof(data));
+void parse_command(char *buf, char **command, Word *word){
+  char *word_string;
+
+  *command = strtok(buf, "|");
+  word_string = strtok(NULL, "|");
+  *word = string_to_word(word_string);
+}
+
+void return_status(int sockfd, int status){
+  char data[2];
+  snprintf(data, sizeof(data), "%d", status);
+  send(sockfd, data, strlen(data), 0);
+}
+
+void return_status_and_word(int sockfd, int status, Word word){
+  char data[105];
+  char word_string[100];
+  word_to_string(word, word_string, sizeof(word_string));
+  snprintf(data, sizeof(data), "%d|%s", status, word_string);
   send(sockfd, data, strlen(data), 0);
 }
