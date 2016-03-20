@@ -17,6 +17,8 @@
 #define EXIT    4
 #define SEARCH_FOR_EN_TEXT  5
 #define SEARCH_FOR_LT_TEXT  6
+#define DELETE_EN_TEXT 7
+#define DELETE_LT_TEXT 8
 
 // Read options
 #define TRANSLATION_EN 1
@@ -78,6 +80,22 @@ int main(){
         break;
       }
       case DELETE:{
+        int choices[2] = { DELETE_EN_TEXT, DELETE_LT_TEXT };
+        int choice = select_command(choices, 2);
+        int input_options[1];
+
+        if(choice == DELETE_EN_TEXT){
+          input_options[0] = TRANSLATION_EN;
+        } else {
+          input_options[0] = TRANSLATION_LT;
+        }
+
+        char data[100];
+        Word word =  get_word_from_stdin(input_options, 2);
+        word_to_string(word, data, sizeof(data));
+        send_command(sockfd, "delete", data);
+        int status = receive_status_and_word(sockfd, NULL);
+        print_status(status, NULL);
         break;
       }
       case EXIT:
@@ -133,6 +151,14 @@ int select_command(int *options, int length){
       case SEARCH_FOR_LT_TEXT:
         map[i] = SEARCH_FOR_LT_TEXT;
         printf("%d. Ieškoti lt vertimo.\n", i + 1);
+        break;
+      case DELETE_LT_TEXT:
+        map[i] = DELETE_LT_TEXT;
+        printf("%d. Trinti pagal lt vertimą.\n", i + 1);
+        break;
+      case DELETE_EN_TEXT:
+        map[i] = DELETE_EN_TEXT;
+        printf("%d. Trinti pagal en vertimą.\n", i + 1);
         break;
     }
   }
@@ -197,6 +223,9 @@ int print_status(int status, Word *word){
       break;
     case TRANSLATION_NOT_FOUND:
       puts("Vertimas nerastas.");
+      break;
+    case TRANSLATION_REMOVED:
+      puts("Vertimas ištrintas.");
       break;
     default:
       puts("Įvyko klaida.");

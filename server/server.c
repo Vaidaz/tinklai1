@@ -168,6 +168,9 @@ void handle_incomming_data(int sockfd, fd_set *main_set){
         case DB_TRANSLATION_FOUND:
           return_status(sockfd, TRANSLATION_EXIST);
           break;
+        default:
+          return_status(sockfd, SERVER_ERROR);
+          break;
       }
     } else if (strcmp(command, "search") == 0){
       Word full_word = empty_word();
@@ -178,6 +181,22 @@ void handle_incomming_data(int sockfd, fd_set *main_set){
           break;
         case DB_TRANSLATION_NOT_FOUND:
           return_status(sockfd, TRANSLATION_NOT_FOUND);
+          break;
+        default:
+          return_status(sockfd, SERVER_ERROR);
+          break;
+      }
+    } else if (strcmp(command, "delete") == 0){
+      int status = db_remove(db, word);
+      switch(status){
+        case DB_TRANSLATION_REMOVED:
+          return_status(sockfd, TRANSLATION_REMOVED);
+          break;
+        case DB_TRANSLATION_NOT_FOUND:
+          return_status(sockfd, TRANSLATION_NOT_FOUND);
+          break;
+        default:
+          return_status(sockfd, SERVER_ERROR);
           break;
       }
     } else {

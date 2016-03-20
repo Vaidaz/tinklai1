@@ -52,7 +52,7 @@ int db_remove(FILE *file, Word word){
       fclose(tmp_db);
       rename("tmp_db.txt", DB_FILE);
 
-      return DB_TRANSLATION_ADDED;
+      return DB_TRANSLATION_REMOVED;
       break;
     }
   }
